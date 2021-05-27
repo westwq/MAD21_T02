@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.icu.text.UnicodeSetSpanner;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,8 +22,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences pref = getSharedPreferences("T02", MODE_PRIVATE);
+        String stored = pref.getString("textInput","Not Found");
+
         EditText txt = findViewById(R.id.input);
         txt.setText("hello t02");
+        if(!stored.equals("Not Found"))
+        {
+            txt.setText(stored); //retrieve from sharedpreferences and display in editText.
+        }
         Log.d("debug", "create");
 
         Button btn2 = findViewById(R.id.button2);
@@ -33,28 +41,40 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button btn = findViewById(R.id.button);
+        Button btn = findViewById(R.id.button); //button right of EditText
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(MainActivity.this, MainActivity2.class);
                 EditText txt = findViewById(R.id.input);
                 String userInput = txt.getText().toString();
+
+                SharedPreferences.Editor pref = getSharedPreferences("T02", MODE_PRIVATE).edit();
+                pref.putString("textInput", userInput);
+                pref.apply();
+
+                Intent in = new Intent(MainActivity.this, MainActivity2.class);
+
                 in.putExtra("userInput", userInput);
                 startActivity(in);
             }
         });
 
-        //generating data
-        ArrayList<User> data = new ArrayList<User>();
-        for(int i=0; i<20; i++)
-        {
-            User u = new User();
-            u.setAge(i+1);
-            u.setName("Name " + i);
+        DBHandler db = new DBHandler(this);
+        ArrayList<User> data = db.getUser("*");
 
-            data.add(u);
-        }
+        //generating data
+//        ArrayList<User> data = new ArrayList<User>();
+//        for(int i=0; i<20; i++)
+//        {
+//            User u = new User();
+//            u.setAge(i+1);
+//            u.setName("Name " + i);
+//
+//            data.add(u);
+//            db.addUser(u);
+//        }
+
+
 
         RecyclerView rv = findViewById(R.id.rv);
         UsersAdapter adapter = new UsersAdapter(this, data);
